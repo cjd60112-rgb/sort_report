@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>選擇排序法</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Microsoft JhengHei", Arial, sans-serif;
+      background: linear-gradient(180deg, #061126, #081b37);
+      color: #eef5ff;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    .title-area {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .title-area h1 {
+      margin: 0;
+      font-size: 46px;
+      color: #ff7b42;
+      letter-spacing: 1px;
+    }
+
+    .title-area p {
+      margin: 10px 0 0;
+      color: #b8d6ff;
+      font-size: 22px;
+    }
+
+    .back-home {
+      text-align: center;
+      margin: 18px 0 24px;
+    }
+
+    .back-home a {
+      display: inline-block;
+      color: #e6f2ff;
+      text-decoration: none;
+      padding: 10px 22px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-size: 18px;
+    }
+
+    .back-home a:hover {
+      background: rgba(255,255,255,0.14);
+    }
+
+    .card {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(160, 205, 255, 0.14);
+      border-radius: 18px;
+      padding: 22px 24px;
+      margin-bottom: 22px;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+    }
+
+    .card p {
+      font-size: 21px;
+      line-height: 1.85;
+      margin: 0 0 12px;
+    }
+
+    .highlight {
+      color: #ffb15e;
+      font-weight: bold;
+    }
+
+    .info-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .badge {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 17px;
+      color: #ddebff;
+    }
+
+    .status-box {
+      background: rgba(28, 87, 174, 0.45);
+      border: 1px solid rgba(75, 154, 255, 0.7);
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 20px;
+      text-align: center;
+      margin-bottom: 22px;
+      color: #eef7ff;
+    }
+
+    .visual-box {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 24px 20px 18px;
+      margin-bottom: 20px;
+    }
+
+    .bars {
+      height: 290px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 8px 0;
+    }
+
+    .bar-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 54px;
+    }
+
+    .bar {
+      width: 100%;
+      border-radius: 8px 8px 0 0;
+      transition: height 0.25s ease, background 0.25s ease, transform 0.25s ease;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      color: white;
+      font-size: 15px;
+      padding-top: 6px;
+      font-weight: bold;
+    }
+
+    .bar-label {
+      margin-top: 8px;
+      color: #dcecff;
+      font-size: 15px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      justify-content: center;
+      margin-top: 18px;
+      font-size: 16px;
+      color: #dcecff;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 14px 24px;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-start { background: linear-gradient(90deg, #2b74ff, #3da6ff); }
+    .btn-pause { background: linear-gradient(90deg, #7b4a12, #ae6d1f); }
+    .btn-step  { background: linear-gradient(90deg, #6b38df, #9449ff); }
+    .btn-reset { background: linear-gradient(90deg, #54657a, #7e92a8); }
+    .btn-shuffle { background: linear-gradient(90deg, #0f7a69, #1eaf94); }
+
+    .bottom-controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 18px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 17px;
+    }
+
+    input[type="number"] {
+      width: 70px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(5,12,28,0.65);
+      color: white;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 17px;
+      text-align: center;
+    }
+
+    input[type="range"] {
+      width: 180px;
+    }
+
+    .apply-btn {
+      padding: 10px 18px;
+      font-size: 16px;
+      border-radius: 12px;
+      background: linear-gradient(90deg, #c11468, #ff2e7b);
+    }
+
+    pre {
+      margin: 0;
+      background: #07142a;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 18px;
+      overflow-x: auto;
+    }
+
+    code {
+      color: #dceaff;
+      font-family: Consolas, monospace;
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .unsorted { background: #45b7ee; }
+    .scan { background: #f2ad23; }
+    .min { background: #ff8a1f; }
+    .current { background: #7e87e8; }
+    .swap { background: #ff4f7a; }
+    .sorted { background: #54d97b; }
+
+    @media (max-width: 768px) {
+      .title-area h1 {
+        font-size: 34px;
+      }
+
+      .title-area p,
+      .card p,
+      .status-box,
+      button,
+      .control-group,
+      code {
+        font-size: 16px;
+      }
+
+      .bar-wrap {
+        width: 34px;
+      }
+
+      .bar {
+        font-size: 12px;
+      }
+
+      .bar-label {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title-area">
+      <h1>🔍 選擇排序法</h1>
+      <p>Selection Sort — 視覺化步驟展示</p>
+    </div>
+
+    <div class="back-home">
+      <a href="index.html">← 回首頁</a>
+    </div>
+
+    <div class="card">
+      <p>
+        <span class="highlight">原理：</span>
+        選擇排序法每一輪會從<span class="highlight">尚未排序的部分</span>找出最小值，
+        再與未排序區域的第一個元素交換位置。每輪結束後，最小值被擺到正確位置，
+        已排序區域就擴大一格。
+      </p>
+      <p>
+        <span class="highlight">時間複雜度：</span>
+        最差 / 平均 / 最佳均為 <span class="highlight">O(n²)</span>。
+        每輪雖然比較很多次，但通常<span class="highlight">最多 1 次交換</span>。
+      </p>
+    </div>
+
+    <div class="info-row">
+      <div class="badge" id="passInfo">第 0 輪 / 共 0 輪</div>
+      <div class="badge" id="compareInfo">比較次數：0</div>
+      <div class="badge" id="swapInfo">交換次數：0</div>
+      <div class="badge" id="stateInfo">狀態：待命</div>
+    </div>
+
+    <div class="status-box" id="statusText">按下「開始」來執行選擇排序。</div>
+
+    <div class="visual-box">
+      <div class="bars" id="bars"></div>
+
+      <div class="legend">
+        <div class="legend-item"><span class="dot unsorted"></span>未排序</div>
+        <div class="legend-item"><span class="dot current"></span>輪起始位置</div>
+        <div class="legend-item"><span class="dot scan"></span>掃描比較中</div>
+        <div class="legend-item"><span class="dot min"></span>目前最小值</div>
+        <div class="legend-item"><span class="dot swap"></span>交換中</div>
+        <div class="legend-item"><span class="dot sorted"></span>已排序</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-start" id="startBtn">▶ 開始</button>
+      <button class="btn-pause" id="pauseBtn">⏸ 暫停</button>
+      <button class="btn-step" id="stepBtn">👣 單步</button>
+      <button class="btn-reset" id="resetBtn">↺ 重置</button>
+      <button class="btn-shuffle" id="shuffleBtn">🎲 亂數陣列</button>
+    </div>
+
+    <div class="bottom-controls">
+      <div class="control-group">
+        <span>元素個數：</span>
+        <input type="number" id="sizeInput" min="5" max="20" value="7" />
+        <button class="apply-btn" id="applySizeBtn">套用</button>
+      </div>
+
+      <div class="control-group">
+        <span>🐢</span>
+        <input type="range" id="speedSlider" min="100" max="1200" step="50" value="700" />
+        <span id="speedLabel">700ms</span>
+        <span>🐇</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <pre><code>function selectionSort(arr) {
+  let n = arr.length;
+
+  for (let i = 0; i &lt; n - 1; i++) {
+    let minIdx = i;
+
+    for (let j = i + 1; j &lt; n; j++) {
+      if (arr[j] &lt; arr[minIdx]) {
+        minIdx = j;
+      }
+    }
+
+    if (minIdx !== i) {
+      [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
+    }
+  }
+
+  return arr;
+}</code></pre>
+    </div>
+  </div>
+
+  <script>
+    const barsEl = document.getElementById("bars");
+    const statusText = document.getElementById("statusText");
+    const passInfo = document.getElementById("passInfo");
+    const compareInfo = document.getElementById("compareInfo");
+    const swapInfo = document.getElementById("swapInfo");
+    const stateInfo = document.getElementById("stateInfo");
+
+    const startBtn = document.getElementById("startBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const stepBtn = document.getElementById("stepBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const applySizeBtn = document.getElementById("applySizeBtn");
+
+    const sizeInput = document.getElementById("sizeInput");
+    const speedSlider = document.getElementById("speedSlider");
+    const speedLabel = document.getElementById("speedLabel");
+
+    let arr = [];
+    let originalArr = [];
+    let n = 7;
+
+    let i = 0;
+    let j = 1;
+    let minIdx = 0;
+
+    let compareCount = 0;
+    let swapCount = 0;
+
+    let isRunning = false;
+    let isPaused = false;
+    let finished = false;
+
+    function randomArray(size) {
+      const result = [];
+      for (let k = 0; k < size; k++) {
+        result.push(Math.floor(Math.random() * 90) + 10);
+      }
+      return result;
+    }
+
+    function initArray(size = 7) {
+      arr = randomArray(size);
+      originalArr = [...arr];
+      resetStateOnly();
+      renderBars();
+      updateInfo();
+      statusText.textContent = `開始選擇排序，陣列共 ${arr.length} 個元素。`;
+    }
+
+    function resetStateOnly() {
+      n = arr.length;
+      i = 0;
+      j = 1;
+      minIdx = 0;
+      compareCount = 0;
+      swapCount = 0;
+      isRunning = false;
+      isPaused = false;
+      finished = false;
+      stateInfo.textContent = "狀態：待命";
+    }
+
+    function resetToOriginal() {
+      arr = [...originalArr];
+      resetStateOnly();
+      renderBars();
+      updateInfo();
+      statusText.textContent = `已重置回原始陣列，共 ${arr.length} 個元素。`;
+    }
+
+    function speed() {
+      return Number(speedSlider.value);
+    }
+
+    speedSlider.addEventListener("input", () => {
+      speedLabel.textContent = `${speed()}ms`;
+    });
+
+    function getBarClass(index) {
+      if (finished || index < i) return "sorted";
+      if (index === i) return "current";
+      if (index === minIdx) return "min";
+      if (index === j) return "scan";
+      return "unsorted";
+    }
+
+    function renderBars(swapA = -1, swapB = -1) {
+      barsEl.innerHTML = "";
+      const maxVal = Math.max(...arr);
+
+      arr.forEach((value, index) => {
+        const wrap = document.createElement("div");
+        wrap.className = "bar-wrap";
+
+        const bar = document.createElement("div");
+        let cls = getBarClass(index);
+
+        if (index === swapA || index === swapB) cls = "swap";
+
+        bar.className = `bar ${cls}`;
+        bar.style.height = `${(value / maxVal) * 220 + 30}px`;
+        bar.textContent = value;
+
+        const label = document.createElement("div");
+        label.className = "bar-label";
+        label.textContent = value;
+
+        wrap.appendChild(bar);
+        wrap.appendChild(label);
+        barsEl.appendChild(wrap);
+      });
+    }
+
+    function updateInfo() {
+      const totalPass = Math.max(arr.length - 1, 0);
+      const currentPass = finished ? totalPass : Math.min(i, totalPass);
+      passInfo.textContent = `第 ${currentPass} 輪 / 共 ${totalPass} 輪`;
+      compareInfo.textContent = `比較次數：${compareCount}`;
+      swapInfo.textContent = `交換次數：${swapCount}`;
+
+      if (finished) {
+        stateInfo.textContent = "狀態：完成";
+      } else if (isRunning && !isPaused) {
+        stateInfo.textContent = "狀態：執行中";
+      } else if (isPaused) {
+        stateInfo.textContent = "狀態：暫停";
+      } else {
+        stateInfo.textContent = "狀態：待命";
+      }
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function oneStep(showDelay = true) {
+      if (finished) return false;
+
+      if (i >= arr.length - 1) {
+        finished = true;
+        renderBars();
+        updateInfo();
+        statusText.textContent = "排序完成，所有元素都已排好。";
+        return false;
+      }
+
+      if (j === i + 1) {
+        minIdx = i;
+        statusText.textContent = `第 ${i} 輪開始，先假設位置 ${i} 的值 ${arr[i]} 為最小值。`;
+        renderBars();
+        updateInfo();
+        if (showDelay) await sleep(speed());
+      }
+
+      if (j < arr.length) {
+        compareCount++;
+        statusText.textContent = `比較 arr[${j}] = ${arr[j]} 和目前最小值 arr[${minIdx}] = ${arr[minIdx]}。`;
+        renderBars();
+        updateInfo();
+        if (showDelay) await sleep(speed());
+
+        if (arr[j] < arr[minIdx]) {
+          minIdx = j;
+          statusText.textContent = `找到更小的值，更新 minIdx 為 ${minIdx}（值 ${arr[minIdx]}）。`;
+          renderBars();
+          updateInfo();
+          if (showDelay) await sleep(speed());
+        }
+
+        j++;
+        return true;
+      }
+
+      if (minIdx !== i) {
+        statusText.textContent = `本輪最小值是 ${arr[minIdx]}，與位置 ${i} 的值 ${arr[i]} 交換。`;
+        renderBars(i, minIdx);
+        updateInfo();
+        if (showDelay) await sleep(speed());
+
+        [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
+        swapCount++;
+        renderBars(i, minIdx);
+        updateInfo();
+        if (showDelay) await sleep(speed());
+      } else {
+        statusText.textContent = `本輪最小值已在正確位置，不需要交換。`;
+        renderBars();
+        updateInfo();
+        if (showDelay) await sleep(speed());
+      }
+
+      i++;
+      j = i + 1;
+      minIdx = i;
+
+      if (i >= arr.length - 1) {
+        finished = true;
+        renderBars();
+        updateInfo();
+        statusText.textContent = "排序完成，所有元素都已排好。";
+        return false;
+      }
+
+      renderBars();
+      updateInfo();
+      return true;
+    }
+
+    async function runSort() {
+      if (finished) return;
+      isRunning = true;
+      isPaused = false;
+      updateInfo();
+
+      while (isRunning && !isPaused && !finished) {
+        const ok = await oneStep(true);
+        if (!ok) break;
+      }
+
+      isRunning = false;
+      updateInfo();
+    }
+
+    startBtn.addEventListener("click", async () => {
+      if (finished) return;
+      if (isRunning && !isPaused) return;
+      isPaused = false;
+      await runSort();
+    });
+
+    pauseBtn.addEventListener("click", () => {
+      if (!finished) {
+        isPaused = true;
+        isRunning = false;
+        updateInfo();
+        statusText.textContent = "已暫停，可以按開始繼續，或按單步逐步執行。";
+      }
+    });
+
+    stepBtn.addEventListener("click", async () => {
+      if (finished) return;
+      isPaused = true;
+      isRunning = false;
+      await oneStep(false);
+      updateInfo();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      resetToOriginal();
+    });
+
+    shuffleBtn.addEventListener("click", () => {
+      const size = Math.min(20, Math.max(5, Number(sizeInput.value) || 7));
+      sizeInput.value = size;
+      initArray(size);
+    });
+
+    applySizeBtn.addEventListener("click", () => {
+      const size = Math.min(20, Math.max(5, Number(sizeInput.value) || 7));
+      sizeInput.value = size;
+      initArray(size);
+    });
+
+    initArray(7);
+    speedLabel.textContent = `${speed()}ms`;
+  </script>
+</body>
+</html>
