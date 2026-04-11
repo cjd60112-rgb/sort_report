@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>綜合比較</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-body">
+  <div class="container">
+    <div class="page-title">
+      <h1>綜合比較</h1>
+      <p>五種排序法的效能與特性整理</p>
+    </div>
+
+    <div class="back-home">
+      <a href="index.html">← 回首頁</a>
+    </div>
+
+    <div class="card">
+      <h2>排序法比較表</h2>
+      <table>
+        <tr>
+          <th>排序法</th>
+          <th>最佳時間</th>
+          <th>平均時間</th>
+          <th>最差時間</th>
+          <th>空間複雜度</th>
+        </tr>
+        <tr>
+          <td>Bubble Sort</td>
+          <td>O(n)</td>
+          <td>O(n²)</td>
+          <td>O(n²)</td>
+          <td>O(1)</td>
+        </tr>
+        <tr>
+          <td>Selection Sort</td>
+          <td>O(n²)</td>
+          <td>O(n²)</td>
+          <td>O(n²)</td>
+          <td>O(1)</td>
+        </tr>
+        <tr>
+          <td>Insertion Sort</td>
+          <td>O(n)</td>
+          <td>O(n²)</td>
+          <td>O(n²)</td>
+          <td>O(1)</td>
+        </tr>
+        <tr>
+          <td>Merge Sort</td>
+          <td>O(n log n)</td>
+          <td>O(n log n)</td>
+          <td>O(n log n)</td>
+          <td>O(n)</td>
+        </tr>
+        <tr>
+          <td>Quick Sort</td>
+          <td>O(n log n)</td>
+          <td>O(n log n)</td>
+          <td>O(n²)</td>
+          <td>O(log n)</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>結果分析</h2>
+      <p>
+        氣泡排序、選擇排序與插入排序的平均時間複雜度都是 O(n²)，
+        因此資料量變大時，執行時間通常會快速增加。
+      </p>
+      <p>
+        合併排序與快速排序的平均時間複雜度是 O(n log n)，
+        在大量資料下通常有較好的效能表現，因此在實務上更常使用。
+      </p>
+      <p>
+        綜合來看，小量資料或教學用途可使用較簡單的排序法；
+        若要處理大量資料，則 Merge Sort 與 Quick Sort 更適合。
+      </p>
+    </div>
+  </div>
+</body>
+</html>
