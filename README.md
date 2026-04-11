@@ -2,6 +2,7 @@
 
 學號：11123291  
 姓名：賴哲昕  
+模擬頁面:https://cjd60112-rgb.github.io/sort_report/
 
 ## 專案內容
 本作業以 GitHub Pages 方式呈現排序演算法分析報告，內容包含：
