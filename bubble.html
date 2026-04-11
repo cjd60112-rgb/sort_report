@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>氣泡排序法</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="title-area">
+      <h1>🫧 氣泡排序法</h1>
+      <p>Bubble Sort — 視覺化步驟展示</p>
+    </div>
+
+    <div class="back-home"><a href="index.html">← 回首頁</a></div>
+
+    <div class="card">
+      <p><span class="highlight">原理：</span>重複比較相鄰兩個元素，若左邊比右邊大就交換。每完成一輪，最大值會被推到最右邊。</p>
+      <p><span class="highlight">時間複雜度：</span>平均 / 最差為 <span class="highlight">O(n²)</span>，最佳情況可達 <span class="highlight">O(n)</span>。</p>
+    </div>
+
+    <div class="info-row">
+      <div class="badge" id="passInfo">第 0 輪 / 共 0 輪</div>
+      <div class="badge" id="compareInfo">比較次數：0</div>
+      <div class="badge" id="swapInfo">交換次數：0</div>
+      <div class="badge" id="stateInfo">狀態：待命</div>
+    </div>
+
+    <div class="status-box" id="statusText">按下「開始」來執行氣泡排序。</div>
+
+    <div class="visual-box">
+      <div class="bars" id="bars"></div>
+      <div class="legend">
+        <div class="legend-item"><span class="dot unsorted"></span>未排序</div>
+        <div class="legend-item"><span class="dot scan"></span>比較中</div>
+        <div class="legend-item"><span class="dot swap"></span>交換中</div>
+        <div class="legend-item"><span class="dot sorted"></span>已排序</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-start" id="startBtn">▶ 開始</button>
+      <button class="btn-pause" id="pauseBtn">⏸ 暫停</button>
+      <button class="btn-step" id="stepBtn">👣 單步</button>
+      <button class="btn-reset" id="resetBtn">↺ 重置</button>
+      <button class="btn-shuffle" id="shuffleBtn">🎲 亂數陣列</button>
+    </div>
+
+    <div class="bottom-controls">
+      <div class="control-group">
+        <span>元素個數：</span>
+        <input type="number" id="sizeInput" min="5" max="20" value="7" />
+        <button class="apply-btn" id="applySizeBtn">套用</button>
+      </div>
+
+      <div class="control-group">
+        <span>🐢</span>
+        <input type="range" id="speedSlider" min="100" max="1200" step="50" value="700" />
+        <span id="speedLabel">700ms</span>
+        <span>🐇</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <pre><code>for i = 0 to n-2
+  for j = 0 to n-2-i
+    if arr[j] > arr[j+1]
+      swap(arr[j], arr[j+1])</code></pre>
+    </div>
+  </div>
+
+  <script>
+    const barsEl = document.getElementById("bars");
+    const statusText = document.getElementById("statusText");
+    const passInfo = document.getElementById("passInfo");
+    const compareInfo = document.getElementById("compareInfo");
+    const swapInfo = document.getElementById("swapInfo");
+    const stateInfo = document.getElementById("stateInfo");
+
+    const startBtn = document.getElementById("startBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const stepBtn = document.getElementById("stepBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const applySizeBtn = document.getElementById("applySizeBtn");
+
+    const sizeInput = document.getElementById("sizeInput");
+    const speedSlider = document.getElementById("speedSlider");
+    const speedLabel = document.getElementById("speedLabel");
+
+    let arr = [];
+    let originalArr = [];
+    let i = 0, j = 0;
+    let compareCount = 0, swapCount = 0;
+    let isRunning = false, isPaused = false, finished = false;
+
+    function randomArray(size) {
+      return Array.from({ length: size }, () => Math.floor(Math.random() * 90) + 10);
+    }
+
+    function initArray(size = 7) {
+      arr = randomArray(size);
+      originalArr = [...arr];
+      resetState();
+      renderBars();
+      updateInfo();
+      statusText.textContent = `開始氣泡排序，陣列共 ${arr.length} 個元素。`;
+    }
+
+    function resetState() {
+      i = 0; j = 0;
+      compareCount = 0; swapCount = 0;
+      isRunning = false; isPaused = false; finished = false;
+    }
+
+    function resetToOriginal() {
+      arr = [...originalArr];
+      resetState();
+      renderBars();
+      updateInfo();
+      statusText.textContent = "已重置回原始陣列。";
+    }
+
+    function speed() { return Number(speedSlider.value); }
+    speedSlider.addEventListener("input", () => speedLabel.textContent = `${speed()}ms`);
+
+    function getClass(idx, swapA = -1, swapB = -1) {
+      if (idx >= arr.length - i && !finished) return "sorted";
+      if (finished) return "sorted";
+      if (idx === swapA || idx === swapB) return "swap";
+      if (idx === j || idx === j + 1) return "scan";
+      return "unsorted";
+    }
+
+    function renderBars(swapA = -1, swapB = -1) {
+      barsEl.innerHTML = "";
+      const maxVal = Math.max(...arr);
+      arr.forEach((v, idx) => {
+        const wrap = document.createElement("div");
+        wrap.className = "bar-wrap";
+        const bar = document.createElement("div");
+        bar.className = `bar ${getClass(idx, swapA, swapB)}`;
+        bar.style.height = `${(v / maxVal) * 220 + 30}px`;
+        bar.textContent = v;
+        const label = document.createElement("div");
+        label.className = "bar-label";
+        label.textContent = v;
+        wrap.appendChild(bar);
+        wrap.appendChild(label);
+        barsEl.appendChild(wrap);
+      });
+    }
+
+    function updateInfo() {
+      const totalPass = Math.max(arr.length - 1, 0);
+      passInfo.textContent = `第 ${Math.min(i, totalPass)} 輪 / 共 ${totalPass} 輪`;
+      compareInfo.textContent = `比較次數：${compareCount}`;
+      swapInfo.textContent = `交換次數：${swapCount}`;
+      stateInfo.textContent = finished ? "狀態：完成" : isRunning && !isPaused ? "狀態：執行中" : isPaused ? "狀態：暫停" : "狀態：待命";
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function oneStep(showDelay = true) {
+      if (finished) return false;
+
+      if (i >= arr.length - 1) {
+        finished = true;
+        renderBars();
+        updateInfo();
+        statusText.textContent = "排序完成。";
+        return false;
+      }
+
+      if (j >= arr.length - 1 - i) {
+        statusText.textContent = `第 ${i} 輪完成，最大值已移到右側。`;
+        i++;
+        j = 0;
+        renderBars();
+        updateInfo();
+        if (showDelay) await sleep(speed());
+        if (i >= arr.length - 1) {
+          finished = true;
+          renderBars();
+          updateInfo();
+          statusText.textContent = "排序完成。";
+          return false;
+        }
+      }
+
+      compareCount++;
+      statusText.textContent = `比較 arr[${j}] = ${arr[j]} 與 arr[${j + 1}] = ${arr[j + 1]}。`;
+      renderBars();
+      updateInfo();
+      if (showDelay) await sleep(speed());
+
+      if (arr[j] > arr[j + 1]) {
+        statusText.textContent = `${arr[j]} > ${arr[j + 1]}，交換這兩個元素。`;
+        renderBars(j, j + 1);
+        updateInfo();
+        if (showDelay) await sleep(speed());
+
+        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+        swapCount++;
+        renderBars(j, j + 1);
+        updateInfo();
+        if (showDelay) await sleep(speed());
+      }
+
+      j++;
+      renderBars();
+      updateInfo();
+      return true;
+    }
+
+    async function runSort() {
+      if (finished) return;
+      isRunning = true;
+      isPaused = false;
+      updateInfo();
+
+      while (isRunning && !isPaused && !finished) {
+        const ok = await oneStep(true);
+        if (!ok) break;
+      }
+
+      isRunning = false;
+      updateInfo();
+    }
+
+    startBtn.addEventListener("click", async () => {
+      if (finished || (isRunning && !isPaused)) return;
+      isPaused = false;
+      await runSort();
+    });
+
+    pauseBtn.addEventListener("click", () => {
+      isPaused = true;
+      isRunning = false;
+      updateInfo();
+      statusText.textContent = "已暫停。";
+    });
+
+    stepBtn.addEventListener("click", async () => {
+      if (finished) return;
+      isPaused = true;
+      isRunning = false;
+      await oneStep(false);
+      updateInfo();
+    });
+
+    resetBtn.addEventListener("click", resetToOriginal);
+
+    shuffleBtn.addEventListener("click", () => {
+      const size = Math.min(20, Math.max(5, Number(sizeInput.value) || 7));
+      sizeInput.value = size;
+      initArray(size);
+    });
+
+    applySizeBtn.addEventListener("click", () => {
+      const size = Math.min(20, Math.max(5, Number(sizeInput.value) || 7));
+      sizeInput.value = size;
+      initArray(size);
+    });
+
+    initArray(7);
+    speedLabel.textContent = `${speed()}ms`;
+  </script>
+</body>
+</html>
