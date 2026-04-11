@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>合併排序法</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="title-area">
+      <h1>🧩 合併排序法</h1>
+      <p>Merge Sort — 視覺化步驟展示</p>
+    </div>
+
+    <div class="back-home"><a href="index.html">← 回首頁</a></div>
+
+    <div class="card">
+      <p><span class="highlight">原理：</span>使用分治法，先把陣列切成左右兩半，再把兩邊排序後依序合併。</p>
+      <p><span class="highlight">時間複雜度：</span>最佳 / 平均 / 最差皆為 <span class="highlight">O(n log n)</span>。</p>
+    </div>
+
+    <div class="info-row">
+      <div class="badge" id="passInfo">步驟：0 / 0</div>
+      <div class="badge" id="compareInfo">比較次數：0</div>
+      <div class="badge" id="swapInfo">寫回次數：0</div>
+      <div class="badge" id="stateInfo">狀態：待命</div>
+    </div>
+
+    <div class="status-box" id="statusText">按下「開始」來執行合併排序。</div>
+
+    <div class="visual-box">
+      <div class="bars" id="bars"></div>
+      <div class="legend">
+        <div class="legend-item"><span class="dot left"></span>左半部</div>
+        <div class="legend-item"><span class="dot right"></span>右半部</div>
+        <div class="legend-item"><span class="dot write"></span>寫回中</div>
+        <div class="legend-item"><span class="dot sorted"></span>已完成</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-start" id="startBtn">▶ 開始</button>
+      <button class="btn-pause" id="pauseBtn">⏸ 暫停</button>
+      <button class="btn-step" id="stepBtn">👣 單步</button>
+      <button class="btn-reset" id="resetBtn">↺ 重置</button>
+      <button class="btn-shuffle" id="shuffleBtn">🎲 亂數陣列</button>
+    </div>
+
+    <div class="bottom-controls">
+      <div class="control-group">
+        <span>元素個數：</span>
+        <input type="number" id="sizeInput" min="5" max="20" value="7" />
+        <button class="apply-btn" id="applySizeBtn">套用</button>
+      </div>
+      <div class="control-group">
+        <span>🐢</span>
+        <input type="range" id="speedSlider" min="100" max="1200" step="50" value="700" />
+        <span id="speedLabel">700ms</span>
+        <span>🐇</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <pre><code>mergeSort(arr):
+  if length <= 1 return arr
+  split into left and right
+  mergeSort(left)
+  mergeSort(right)
+  merge(left, right)</code></pre>
+    </div>
+  </div>
+
+  <script>
+    const barsEl = document.getElementById("bars");
+    const statusText = document.getElementById("statusText");
+    const passInfo = document.getElementById("passInfo");
+    const compareInfo = document.getElementById("compareInfo");
+    const swapInfo = document.getElementById("swapInfo");
+    const stateInfo = document.getElementById("stateInfo");
+
+    const startBtn = document.getElementById("startBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const stepBtn = document.getElementById("stepBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const applySizeBtn = document.getElementById("applySizeBtn");
+
+    const sizeInput = document.getElementById("sizeInput");
+    const speedSlider = document.getElementById("speedSlider");
+    const speedLabel = document.getElementById("speedLabel");
+
+    let arr = [];
+    let originalArr = [];
+    let steps = [];
+    let stepIndex = 0;
+    let compareCount = 0, writeCount = 0;
+    let isRunning = false, isPaused = false, finished = false;
+
+    let leftRange = null, rightRange = null, writeIndex = -1;
+
+    function randomArray(size) {
+      return Array.from({ length: size }, () => Math.floor(Math.random() * 90) + 10);
+    }
+
+    function buildSteps(baseArr) {
+      const a = [...baseArr];
+      const temp = Array(a.length);
+      const ops = [];
+
+      function mergeSort(l, r) {
+        if (l >= r) return;
+        const m = Math.floor((l + r) / 2);
+        mergeSort(l, m);
+        mergeSort(m + 1, r);
+
+        let i = l, j = m + 1, k = l;
+
+        while (i <= m && j <= r) {
+          ops.push({ type: "compare", left: [l, m], right: [m + 1, r], i, j, k });
+          if (a[i] <= a[j]) {
+            temp[k] = a[i];
+            ops.push({ type: "write", left: [l, m], right: [m + 1, r], index: k, value: a[i] });
+            i++;
+          } else {
+            temp[k] = a[j];
+            ops.push({ type: "write", left: [l, m], right: [m + 1, r], index: k, value: a[j] });
+            j++;
+          }
+          k++;
+        }
+
+        while (i <= m) {
+          temp[k] = a[i];
+          ops.push({ type: "write", left: [l, m], right: [m + 1, r], index: k, value: a[i] });
+          i++; k++;
+        }
+
+        while (j <= r) {
+          temp[k] = a[j];
+          ops.push({ type: "write", left: [l, m], right: [m + 1, r], index: k, value: a[j] });
+          j++; k++;
+        }
+
+        for (let t = l; t <= r; t++) {
+          a[t] = temp[t];
+        }
+      }
+
+      mergeSort(0, a.length - 1);
+      return ops;
+    }
+
+    function initArray(size = 7) {
+      arr = randomArray(size);
+      originalArr = [...arr];
+      steps = buildSteps(arr);
+      resetState();
+      renderBars();
+      updateInfo();
+      statusText.textContent = `開始合併排序，陣列共 ${arr.length} 個元素。`;
+    }
+
+    function resetState() {
+      arr = [...originalArr];
+      steps = buildSteps(arr);
+      stepIndex = 0;
+      compareCount = 0;
+      writeCount = 0;
+      isRunning = false;
+      isPaused = false;
+      finished = false;
+      leftRange = null;
+      rightRange = null;
+      writeIndex = -1;
+    }
+
+    function resetToOriginal() {
+      resetState();
+      renderBars();
+      updateInfo();
+      statusText.textContent = "已重置回原始陣列。";
+    }
+
+    function speed() { return Number(speedSlider.value); }
+    speedSlider.addEventListener("input", () => speedLabel.textContent = `${speed()}ms`);
+
+    function getClass(idx) {
+      if (finished) return "sorted";
+      if (writeIndex === idx) return "write";
+      if (leftRange && idx >= leftRange[0] && idx <= leftRange[1]) return "left";
+      if (rightRange && idx >= rightRange[0] && idx <= rightRange[1]) return "right";
+      return "unsorted";
+    }
+
+    function renderBars() {
+      barsEl.innerHTML = "";
+      const maxVal = Math.max(...arr);
+      arr.forEach((v, idx) => {
+        const wrap = document.createElement("div");
+        wrap.className = "bar-wrap";
+        const bar = document.createElement("div");
+        bar.className = `bar ${getClass(idx)}`;
+        bar.style.height = `${(v / maxVal) * 220 + 30}px`;
+        bar.textContent = v;
+        const label = document.createElement("div");
+        label.className = "bar-label";
+        label.textContent = v;
+        wrap.appendChild(bar);
+        wrap.appendChild(label);
+        barsEl.appendChild(wrap);
+      });
+    }
+
+    function updateInfo() {
+      passInfo.textContent = `步驟：${stepIndex} / ${steps.length}`;
+      compareInfo.textContent = `比較次數：${compareCount}`;
+      swapInfo.textContent = `寫回次數：${writeCount}`;
+      stateInfo.textContent = finished ? "狀態：完成" : isRunning && !isPaused ? "狀態：執行中" : isPaused ? "狀態：暫停" : "狀態：待命";
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function oneStep(showDelay = true) {
+      if (finished) return false;
+      if (stepIndex >= steps.length) {
+        finished = true;
+        leftRange = rightRange = null;
+        writeIndex = -1;
+        renderBars();
+        updateInfo();
+        statusText.textContent = "排序完成。";
+        return false;
+      }
+
+      const s = steps[stepIndex];
+      leftRange = s.left;
+      rightRange = s.right;
+      writeIndex = -1;
+
+      if (s.type === "compare") {
+        compareCount++;
+        statusText.textContent = `比較左右兩半部的候選元素。`;
+      } else if (s.type === "write") {
+        arr[s.index] = s.value;
+        writeIndex = s.index;
+        writeCount++;
+        statusText.textContent = `將值 ${s.value} 寫回位置 ${s.index}。`;
+      }
+
+      stepIndex++;
+      renderBars();
+      updateInfo();
+      if (showDelay) await sleep(speed());
+
+      if (stepIndex >= steps.length) {
+        finished = true;
+        leftRange = rightRange = null;
+        writeIndex = -1;
+        renderBars();
+        updateInfo();
+        statusText.textContent = "排序完成。";
+        return false;
+      }
+
+      return true;
+    }
+
+    async function runSort() {
+      if (finished) return;
+      isRunning = true;
+      isPaused = false;
+      updateInfo();
+
+      while (isRunning && !isPaused && !finished) {
+        const ok = await oneStep(true);
+        if (!ok) break;
+      }
+
+      isRunning = false;
+      updateInfo();
+    }
+
+    startBtn.addEventListener("click", async () => {
+      if (finished || (isRunning && !isPaused)) return;
+      isPaused = false;
+      await runSort();
+    });
+
+    pauseBtn.addEventListener("click", () => {
+      isPaused = true;
+      isRunning = false;
+      updateInfo();
+      statusText.textContent = "已暫停。";
+    });
+
+    stepBtn.addEventListener("click", async () => {
+      if (finished) return;
+      isPaused = true;
+      isRunning = false;
+      await oneStep(false);
+      updateInfo();
+    });
+
+    resetBtn.addEventListener("click", resetToOriginal);
+
+    shuffleBtn.addEventListener("click", () => {
+      const size = Math.min(20, Math.max(5, Number(sizeInput.value) || 7));
+      sizeInput.value = size;
+      initArray(size);
+    });
+
+    applySizeBtn.addEventListener("click", () => {
+      const size = Math.min(20, Math.max(5, Number(sizeInput.value) || 7));
+      sizeInput.value = size;
+      initArray(size);
+    });
+
+    initArray(7);
+    speedLabel.textContent = `${speed()}ms`;
+  </script>
+</body>
+</html>
