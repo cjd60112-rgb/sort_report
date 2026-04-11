@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>快速排序法</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="title-area">
+      <h1>⚡ 快速排序法</h1>
+      <p>Quick Sort — 視覺化步驟展示</p>
+    </div>
+
+    <div class="back-home"><a href="index.html">← 回首頁</a></div>
+
+    <div class="card">
+      <p><span class="highlight">原理：</span>選一個 pivot，將小於 pivot 的元素放左邊，大於 pivot 的放右邊，再遞迴處理左右兩部分。</p>
+      <p><span class="highlight">時間複雜度：</span>平均為 <span class="highlight">O(n log n)</span>，最差為 <span class="highlight">O(n²)</span>。</p>
+    </div>
+
+    <div class="info-row">
+      <div class="badge" id="passInfo">步驟：0 / 0</div>
+      <div class="badge" id="compareInfo">比較次數：0</div>
+      <div class="badge" id="swapInfo">交換次數：0</div>
+      <div class="badge" id="stateInfo">狀態：待命</div>
+    </div>
+
+    <div class="status-box" id="statusText">按下「開始」來執行快速排序。</div>
+
+    <div class="visual-box">
+      <div class="bars" id="bars"></div>
+      <div class="legend">
+        <div class="legend-item"><span class="dot pivot"></span>Pivot</div>
+        <div class="legend-item"><span class="dot scan"></span>掃描中</div>
+        <div class="legend-item"><span class="dot swap"></span>交換中</div>
+        <div class="legend-item"><span class="dot sorted"></span>已處理完成</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-start" id="startBtn">▶ 開始</button>
+      <button class="btn-pause" id="pauseBtn">⏸ 暫停</button>
+      <button class="btn-step" id="stepBtn">👣 單步</button>
+      <button class="btn-reset" id="resetBtn">↺ 重置</button>
+      <button class="btn-shuffle" id="shuffleBtn">🎲 亂數陣列</button>
+    </div>
+
+    <div class="bottom-controls">
+      <div class="control-group">
+        <span>元素個數：</span>
+        <input type="number" id="sizeInput" min="5" max="20" value="7" />
+        <button class="apply-btn" id="applySizeBtn">套用</button>
+      </div>
+      <div class="control-group">
+        <span>🐢</span>
+        <input type="range" id="speedSlider" min="100" max="1200" step="50" value="700" />
+        <span id="speedLabel">700ms</span>
+        <span>🐇</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <pre><code>quickSort(arr):
+  choose pivot
+  partition into left / right
+  quickSort(left)
+  quickSort(right)</code></pre>
+    </div>
+  </div>
+
+  <script>
+    const barsEl = document.getElementById("bars");
+    const statusText = document.getElementById("statusText");
+    const passInfo = document.getElementById("passInfo");
+    const compareInfo = document.getElementById("compareInfo");
+    const swapInfo = document.getElementById("swapInfo");
+    const stateInfo = document.getElementById("stateInfo");
+
+    const startBtn = document.getElementById("startBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const stepBtn = document.getElementById("stepBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const applySizeBtn = document.getElementById("applySizeBtn");
+
+    const sizeInput = document.getElementById("sizeInput");
+    const speedSlider = document.getElementById("speedSlider");
+    const speedLabel = document.getElementById("speedLabel");
+
+    let arr = [];
+    let originalArr = [];
+    let steps = [];
+    let stepIndex = 0;
+    let compareCount = 0, swapCount = 0;
+    let isRunning = false, isPaused = false, finished = false;
+
+    let pivotIndex = -1, scanIndex = -1, swapA = -1, swapB = -1;
+
+    function randomArray(size) {
+      return Array.from({ length: size }, () => Math.floor(Math.random() * 90) + 10);
+    }
+
+    function buildSteps(baseArr) {
+      const a = [...baseArr];
+      const ops = [];
+
+      function quickSort(l, r) {
+        if (l >= r) return;
+
+        const pivot = a[r];
+        let i = l - 1;
+        ops.push({ type: "pivot", pivotIndex: r });
+
+        for (let j = l; j < r; j++) {
+          ops.push({ type: "compare", j, pivotIndex: r });
+          if (a[j] < pivot) {
+            i++;
+            if (i !== j) {
+              ops.push({ type: "swap", i, j, pivotIndex: r });
+              [a[i], a[j]] = [a[j], a[i]];
+            }
+          }
+        }
+
+        if (i + 1 !== r) {
+          ops.push({ type: "swap", i: i + 1, j: r, pivotIndex: r });
+          [a[i + 1], a[r]] = [a[r], a[i + 1]];
+        }
+
+        const p = i + 1;
+        ops.push({ type: "fixed", pivotIndex: p });
+        quickSort(l, p - 1);
+        quickSort(p + 1, r);
+      }
+
+      quickSort(0, a.length - 1);
+      return ops;
+    }
+
+    function initArray(size = 7) {
+      arr = randomArray(size);
+      originalArr = [...arr];
+      steps = buildSteps(arr);
+      resetState();
+      renderBars();
+      updateInfo();
+      statusText.textContent = `開始快速排序，陣列共 ${arr.length} 個元素。`;
+    }
+
+    function resetState() {
+      arr = [...originalArr];
+      steps = buildSteps(arr);
+      stepIndex = 0;
+      compareCount = 0;
+      swapCount = 0;
+      isRunning = false;
+      isPaused = false;
+      finished = false;
+      pivotIndex = -1;
+      scanIndex = -1;
+      swapA = -1;
+      swapB = -1;
+    }
+
+    function resetToOriginal() {
+      resetState();
+      renderBars();
+      updateInfo();
+      statusText.textContent = "已重置回原始陣列。";
+    }
+
+    function speed() { return Number(speedSlider.value); }
+    speedSlider.addEventListener("input", () => speedLabel.textContent = `${speed()}ms`);
+
+    function getClass(idx) {
+      if (finished) return "sorted";
+      if (idx === swapA || idx === swapB) return "swap";
+      if (idx === pivotIndex) return "pivot";
+      if (idx === scanIndex) return "scan";
+      return "unsorted";
+    }
+
+    function renderBars() {
+      barsEl.innerHTML = "";
+      const maxVal = Math.max(...arr);
+      arr.forEach((v, idx) => {
+        const wrap = document.createElement("div");
+        wrap.className = "bar-wrap";
+        const bar = document.createElement("div");
+        bar.className = `bar ${getClass(idx)}`;
+        bar.style.height = `${(v / maxVal) * 220 + 30}px`;
+        bar.textContent = v;
+        const label = document.createElement("div");
+        label.className = "bar-label";
+        label.textContent = v;
+        wrap.appendChild(bar);
+        wrap.appendChild(label);
+        barsEl.appendChild(wrap);
+      });
+    }
+
+    function updateInfo() {
+      passInfo.textContent = `步驟：${stepIndex} / ${steps.length}`;
+      compareInfo.textContent = `比較次數：${compareCount}`;
+      swapInfo.textContent = `交換次數：${swapCount}`;
+      stateInfo.textContent = finished ? "狀態：完成" : isRunning && !isPaused ? "狀態：執行中" : isPaused ? "狀態：暫停" : "狀態：待命";
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function oneStep(showDelay = true) {
+      if (finished) return false;
+      if (stepIndex >= steps.length) {
+        finished = true;
+        pivotIndex = scanIndex = swapA = swapB = -1;
+        renderBars();
+        updateInfo();
+        statusText.textContent = "排序完成。";
+        return false;
+      }
+
+      const s = steps[stepIndex];
+      swapA = swapB = -1;
+      scanIndex = -1;
+
+      if (s.type === "pivot") {
+        pivotIndex = s.pivotIndex;
+        statusText.textContent = `選定 pivot = ${arr[pivotIndex]}。`;
+      } else if (s.type === "compare") {
+        pivotIndex = s.pivotIndex;
+        scanIndex = s.j;
+        compareCount++;
+        statusText.textContent = `比較 arr[${s.j}] = ${arr[s.j]} 與 pivot = ${arr[pivotIndex]}。`;
+      } else if (s.type === "swap") {
+        pivotIndex = s.pivotIndex;
+        swapA = s.i;
+        swapB = s.j;
+        statusText.textContent = `交換位置 ${s.i} 與 ${s.j} 的元素。`;
+        [arr[s.i], arr[s.j]] = [arr[s.j], arr[s.i]];
+        swapCount++;
+      } else if (s.type === "fixed") {
+        pivotIndex = s.pivotIndex;
+        statusText.textContent = `pivot 已放到正確位置 ${pivotIndex}。`;
+      }
+
+      stepIndex++;
+      renderBars();
+      updateInfo();
+      if (showDelay) await sleep(speed());
+
+      if (stepIndex >= steps.length) {
+        finished = true;
+        pivotIndex = scanIndex = swapA = swapB = -1;
+        renderBars();
+        updateInfo();
+        statusText.textContent = "排序完成。";
+        return false;
+      }
+
+      return true;
+    }
+
+    async function runSort() {
+      if (finished) return;
+      isRunning = true;
+      isPaused = false;
+      updateInfo();
+
+      while (isRunning && !isPaused && !finished) {
+        const ok = await oneStep(true);
+        if (!ok) break;
+      }
+
+      isRunning = false;
+      updateInfo();
+    }
+
+    startBtn.addEventListener("click", async () => {
+      if (finished || (isRunning && !isPaused)) return;
+      isPaused = false;
+      await runSort();
+    });
+
+    pauseBtn.addEventListener("click", () => {
+      isPaused = true;
+      isRunning = false;
+      updateInfo();
+      statusText.textContent = "已暫停。";
+    });
+
+    stepBtn.addEventListener("click", async () => {
+      if (finished) return;
+      isPaused = true;
+      isRunning = false;
+      await oneStep(false);
+      updateInfo();
+    });
+
+    resetBtn.addEventListener("click", resetToOriginal);
+
+    shuffleBtn.addEventListener("click", () => {
+      const size = Math.min(20, Math.max(5, Number(sizeInput.value) || 7));
+      sizeInput.value = size;
+      initArray(size);
+    });
+
+    applySizeBtn.addEventListener("click", () => {
+      const size = Math.min(20, Math.max(5, Number(sizeInput.value) || 7));
+      sizeInput.value = size;
+      initArray(size);
+    });
+
+    initArray(7);
+    speedLabel.textContent = `${speed()}ms`;
+  </script>
+</body>
+</html>
